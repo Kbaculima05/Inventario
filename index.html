@@ -444,12 +444,12 @@
 </main>
 
 <script>
+
 // Variables globales
 let productos = JSON.parse(localStorage.getItem("productos")) || [];
 let historialVentas = JSON.parse(localStorage.getItem("historialVentas")) || [];
 
-// Función para agregar producto
-function agregarProducto() {
+async function agregarProducto() {
   const producto = {
     codigo: document.getElementById('codigo').value.trim(),
     nombre: document.getElementById('nombre').value.trim(),
@@ -461,14 +461,57 @@ function agregarProducto() {
     cantidad: parseInt(document.getElementById('cantidad').value),
     fechaRegistro: new Date().toISOString()
   };
-  
+
   // Validaciones
   if (!producto.codigo || !producto.nombre || !producto.categoria || 
       isNaN(producto.costo) || isNaN(producto.precioVenta) || isNaN(producto.cantidad)) {
     mostrarAlerta("Por favor complete todos los campos obligatorios", "danger");
     return;
   }
-  
+
+  if (producto.costo <= 0 || producto.precioVenta <= 0 || producto.cantidad <= 0) {
+    mostrarAlerta("Los valores de costo, precio y cantidad deben ser mayores a cero", "danger");
+    return;
+  }
+
+  if (producto.precioVenta < producto.costo) {
+    if (!confirm("El precio de venta es menor que el costo. ¿Desea continuar?")) {
+      return;
+    }
+  }
+
+  const index = productos.findIndex(p => p.codigo === producto.codigo);
+  if (index >= 0) {
+    productos[index].cantidad += producto.cantidad;
+    mostrarAlerta(`Producto actualizado. Nueva cantidad: ${productos[index].cantidad}`, "success");
+  } else {
+    productos.push(producto);
+    mostrarAlerta("Producto agregado correctamente al inventario", "success");
+  }
+
+  localStorage.setItem("productos", JSON.stringify(productos));
+
+  // Intentar guardar en Supabase
+  try {
+    await client.from("productos").upsert([producto]);
+    console.log("Producto guardado en Supabase");
+  } catch (error) {
+    console.error("Error al guardar producto en Supabase:", error);
+  }
+
+  // Limpiar formulario
+  document.getElementById('codigo').value = '';
+  document.getElementById('nombre').value = '';
+  document.getElementById('categoria').value = '';
+  document.getElementById('descripcion').value = '';
+  document.getElementById('talla').value = '';
+  document.getElementById('costo').value = '';
+  document.getElementById('precioVenta').value = '';
+  document.getElementById('cantidad').value = '1';
+
+  cargarInventario();
+}
+
   if (producto.costo <= 0 || producto.precioVenta <= 0 || producto.cantidad <= 0) {
     mostrarAlerta("Los valores de costo, precio y cantidad deben ser mayores a cero", "danger");
     return;
@@ -669,75 +712,76 @@ function filtrarProductos() {
 }
 
 // Función para confirmar venta
-function confirmarVenta() {
+async function confirmarVenta() {
   const codigo = document.getElementById("codigoVenta").value.trim();
   const precio = parseFloat(document.getElementById("precioVentaManual").value);
   const pago = document.getElementById("formaPago").value;
   const fecha = new Date().toISOString();
-  
+
   if (!codigo || isNaN(precio) || precio <= 0) {
     mostrarAlerta("Por favor ingrese un código válido y un precio mayor a cero", "danger");
     return;
   }
-  
+
   const index = productos.findIndex(p => p.codigo === codigo);
-  
+
+  let venta;
+
   if (index >= 0) {
     if (productos[index].cantidad > 0) {
       productos[index].cantidad--;
       localStorage.setItem("productos", JSON.stringify(productos));
-      
-      const venta = { 
-        codigo, 
+
+      venta = {
+        codigo,
         nombre: productos[index].nombre,
         categoria: productos[index].categoria,
-        precio, 
-        pago, 
+        precio,
+        pago,
         fecha,
         costo: productos[index].costo
       };
-      
+
       historialVentas.push(venta);
       localStorage.setItem("historialVentas", JSON.stringify(historialVentas));
-      
-      mostrarAlerta(
-        `Venta registrada: ${productos[index].nombre} por $${precio.toFixed(2)} (${pago})`,
-        "success"
-      );
-      
-      // Actualizar inventario si está visible
+
+      mostrarAlerta(`Venta registrada: ${productos[index].nombre} por $${precio.toFixed(2)} (${pago})`, "success");
+
       if (document.getElementById("inventario").classList.contains("active")) {
         cargarInventario();
       }
     } else {
       mostrarAlerta("No hay suficiente stock para este producto", "danger");
+      return;
     }
   } else {
-    if (confirm("Producto no encontrado. ¿Desea registrar la venta igualmente?")) {
-      const venta = { 
-        codigo, 
-        nombre: "Producto no registrado",
-        categoria: "Varios",
-        precio, 
-        pago, 
-        fecha,
-        costo: 0
-      };
-      
-      historialVentas.push(venta);
-      localStorage.setItem("historialVentas", JSON.stringify(historialVentas));
-      
-      mostrarAlerta(
-        `Venta registrada (producto no registrado) por $${precio.toFixed(2)} (${pago})`,
-        "warning"
-      );
-    }
+    if (!confirm("Producto no encontrado. ¿Desea registrar la venta igualmente?")) return;
+
+    venta = {
+      codigo,
+      nombre: "Producto no registrado",
+      categoria: "Varios",
+      precio,
+      pago,
+      fecha,
+      costo: 0
+    };
+
+    historialVentas.push(venta);
+    localStorage.setItem("historialVentas", JSON.stringify(historialVentas));
+
+    mostrarAlerta(`Venta registrada (producto no registrado) por $${precio.toFixed(2)} (${pago})`, "warning");
   }
-  
+
+  // Subir a Supabase
+  const { error } = await client.from("ventas").insert([venta]);
+  if (error) {
+    console.error("Error al guardar en Supabase:", error);
+  }
+
   document.getElementById("codigoVenta").value = "";
   document.getElementById("precioVentaManual").value = "";
 }
-
 // Función para mostrar historial
 function mostrarHistorial() {
   const ano = document.getElementById("filtroAno").value ? parseInt(document.getElementById("filtroAno").value) : null;
@@ -1019,4 +1063,4 @@ window.onload = function() {
 </body>
 </html>
 
-“subiendo sistema funcional completo”
+
