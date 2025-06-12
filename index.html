@@ -444,12 +444,12 @@
 </main>
 
 <script>
-
 // Variables globales
 let productos = JSON.parse(localStorage.getItem("productos")) || [];
 let historialVentas = JSON.parse(localStorage.getItem("historialVentas")) || [];
 
-async function agregarProducto() {
+// Función para agregar producto
+function agregarProducto() {
   const producto = {
     codigo: document.getElementById('codigo').value.trim(),
     nombre: document.getElementById('nombre').value.trim(),
@@ -461,14 +461,14 @@ async function agregarProducto() {
     cantidad: parseInt(document.getElementById('cantidad').value),
     fechaRegistro: new Date().toISOString()
   };
-
+  
   // Validaciones
   if (!producto.codigo || !producto.nombre || !producto.categoria || 
       isNaN(producto.costo) || isNaN(producto.precioVenta) || isNaN(producto.cantidad)) {
     mostrarAlerta("Por favor complete todos los campos obligatorios", "danger");
     return;
   }
-
+  
   if (producto.costo <= 0 || producto.precioVenta <= 0 || producto.cantidad <= 0) {
     mostrarAlerta("Los valores de costo, precio y cantidad deben ser mayores a cero", "danger");
     return;
@@ -483,50 +483,7 @@ async function agregarProducto() {
   const index = productos.findIndex(p => p.codigo === producto.codigo);
   if (index >= 0) {
     productos[index].cantidad += producto.cantidad;
-    mostrarAlerta(`Producto actualizado. Nueva cantidad: ${productos[index].cantidad}`, "success");
-  } else {
-    productos.push(producto);
-    mostrarAlerta("Producto agregado correctamente al inventario", "success");
-  }
-
-  localStorage.setItem("productos", JSON.stringify(productos));
-
-  // Intentar guardar en Supabase
-  try {
-    await client.from("productos").upsert([producto]);
-    console.log("Producto guardado en Supabase");
-  } catch (error) {
-    console.error("Error al guardar producto en Supabase:", error);
-  }
-
-  // Limpiar formulario
-  document.getElementById('codigo').value = '';
-  document.getElementById('nombre').value = '';
-  document.getElementById('categoria').value = '';
-  document.getElementById('descripcion').value = '';
-  document.getElementById('talla').value = '';
-  document.getElementById('costo').value = '';
-  document.getElementById('precioVenta').value = '';
-  document.getElementById('cantidad').value = '1';
-
-  cargarInventario();
-}
-
-  if (producto.costo <= 0 || producto.precioVenta <= 0 || producto.cantidad <= 0) {
-    mostrarAlerta("Los valores de costo, precio y cantidad deben ser mayores a cero", "danger");
-    return;
-  }
-
-  if (producto.precioVenta < producto.costo) {
-    if (!confirm("El precio de venta es menor que el costo. ¿Desea continuar?")) {
-      return;
-    }
-  }
-
-  const index = productos.findIndex(p => p.codigo === producto.codigo);
-  if (index >= 0) {
-    productos[index].cantidad += producto.cantidad;
-    mostrarAlerta(`Producto actualizado. Nueva cantidad: ${productos[index].cantidad}`, "success");
+    mostrarAlerta(Producto actualizado. Nueva cantidad: ${productos[index].cantidad}, "success");
   } else {
     productos.push(producto);
     mostrarAlerta("Producto agregado correctamente al inventario", "success");
@@ -550,7 +507,7 @@ async function agregarProducto() {
 // Función para mostrar alertas
 function mostrarAlerta(mensaje, tipo) {
   const alerta = document.createElement('div');
-  alerta.className = `alert alert-${tipo}`;
+  alerta.className = alert alert-${tipo};
   alerta.textContent = mensaje;
   
   const tabContent = document.querySelector('.tab-content.active');
@@ -580,8 +537,8 @@ function cargarInventario() {
   productos.forEach((producto, index) => {
     if (producto.categoria !== categoriaActual) {
       categoriaActual = producto.categoria;
-      html += `<div class="categoria-header">${categoriaActual}</div>`;
-      html += `<table>
+      html += <div class="categoria-header">${categoriaActual}</div>;
+      html += <table>
                 <thead>
                   <tr>
                     <th>Código</th>
@@ -593,13 +550,13 @@ function cargarInventario() {
                     <th>Acciones</th>
                   </tr>
                 </thead>
-                <tbody>`;
+                <tbody>;
     }
     
     const claseCantidad = producto.cantidad <= 5 ? 'cantidad-bajo' : 'cantidad-normal';
-    const textoCantidad = producto.cantidad <= 5 ? `${producto.cantidad} (BAJO)` : producto.cantidad;
+    const textoCantidad = producto.cantidad <= 5 ? ${producto.cantidad} (BAJO) : producto.cantidad;
     
-    html += `<tr class="producto-row">
+    html += <tr class="producto-row">
               <td>${producto.codigo}</td>
               <td>${producto.nombre}</td>
               <td>${producto.talla}</td>
@@ -611,12 +568,12 @@ function cargarInventario() {
                 <button onclick="modificarCantidad(${index}, -1)" class="warning">-1</button>
                 <button onclick="eliminarProducto(${index})" class="danger">Eliminar</button>
               </td>
-            </tr>`;
+            </tr>;
     
     // Cerrar tabla si el siguiente producto es de otra categoría o es el último
     const siguienteProducto = productos[index + 1];
     if (!siguienteProducto || siguienteProducto.categoria !== categoriaActual) {
-      html += `</tbody></table>`;
+      html += </tbody></table>;
     }
   });
   
@@ -636,20 +593,20 @@ function modificarCantidad(index, delta) {
   cargarInventario();
   
   mostrarAlerta(
-    `Cantidad de ${productos[index].nombre} actualizada a ${nuevaCantidad}`,
+    Cantidad de ${productos[index].nombre} actualizada a ${nuevaCantidad},
     nuevaCantidad <= 5 ? "warning" : "success"
   );
 }
 
 // Función para eliminar producto
 function eliminarProducto(index) {
-  if (confirm(`¿Está seguro que desea eliminar completamente "${productos[index].nombre}" del inventario?`)) {
+  if (confirm(¿Está seguro que desea eliminar completamente "${productos[index].nombre}" del inventario?)) {
     const productoEliminado = productos.splice(index, 1)[0];
     localStorage.setItem("productos", JSON.stringify(productos));
     cargarInventario();
     
     mostrarAlerta(
-      `Producto "${productoEliminado.nombre}" eliminado del inventario`,
+      Producto "${productoEliminado.nombre}" eliminado del inventario,
       "danger"
     );
   }
@@ -671,7 +628,7 @@ function filtrarProductos() {
     return;
   }
   
-  let html = `<table>
+  let html = <table>
                 <thead>
                   <tr>
                     <th>Código</th>
@@ -684,14 +641,14 @@ function filtrarProductos() {
                     <th>Acciones</th>
                   </tr>
                 </thead>
-                <tbody>`;
+                <tbody>;
   
   productosFiltrados.forEach((producto, index) => {
     const indexOriginal = productos.findIndex(p => p.codigo === producto.codigo);
     const claseCantidad = producto.cantidad <= 5 ? 'cantidad-bajo' : 'cantidad-normal';
-    const textoCantidad = producto.cantidad <= 5 ? `${producto.cantidad} (BAJO)` : producto.cantidad;
+    const textoCantidad = producto.cantidad <= 5 ? ${producto.cantidad} (BAJO) : producto.cantidad;
     
-    html += `<tr class="producto-row">
+    html += <tr class="producto-row">
               <td>${producto.codigo}</td>
               <td>${producto.nombre}</td>
               <td>${producto.categoria}</td>
@@ -704,84 +661,83 @@ function filtrarProductos() {
                 <button onclick="modificarCantidad(${indexOriginal}, -1)" class="warning">-1</button>
                 <button onclick="eliminarProducto(${indexOriginal})" class="danger">Eliminar</button>
               </td>
-            </tr>`;
+            </tr>;
   });
   
-  html += `</tbody></table>`;
+  html += </tbody></table>;
   contenedor.innerHTML = html;
 }
 
 // Función para confirmar venta
-async function confirmarVenta() {
+function confirmarVenta() {
   const codigo = document.getElementById("codigoVenta").value.trim();
   const precio = parseFloat(document.getElementById("precioVentaManual").value);
   const pago = document.getElementById("formaPago").value;
   const fecha = new Date().toISOString();
-
+  
   if (!codigo || isNaN(precio) || precio <= 0) {
     mostrarAlerta("Por favor ingrese un código válido y un precio mayor a cero", "danger");
     return;
   }
-
+  
   const index = productos.findIndex(p => p.codigo === codigo);
-
-  let venta;
-
+  
   if (index >= 0) {
     if (productos[index].cantidad > 0) {
       productos[index].cantidad--;
       localStorage.setItem("productos", JSON.stringify(productos));
-
-      venta = {
-        codigo,
+      
+      const venta = { 
+        codigo, 
         nombre: productos[index].nombre,
         categoria: productos[index].categoria,
-        precio,
-        pago,
+        precio, 
+        pago, 
         fecha,
         costo: productos[index].costo
       };
-
+      
       historialVentas.push(venta);
       localStorage.setItem("historialVentas", JSON.stringify(historialVentas));
-
-      mostrarAlerta(`Venta registrada: ${productos[index].nombre} por $${precio.toFixed(2)} (${pago})`, "success");
-
+      
+      mostrarAlerta(
+        Venta registrada: ${productos[index].nombre} por $${precio.toFixed(2)} (${pago}),
+        "success"
+      );
+      
+      // Actualizar inventario si está visible
       if (document.getElementById("inventario").classList.contains("active")) {
         cargarInventario();
       }
     } else {
       mostrarAlerta("No hay suficiente stock para este producto", "danger");
-      return;
     }
   } else {
-    if (!confirm("Producto no encontrado. ¿Desea registrar la venta igualmente?")) return;
-
-    venta = {
-      codigo,
-      nombre: "Producto no registrado",
-      categoria: "Varios",
-      precio,
-      pago,
-      fecha,
-      costo: 0
-    };
-
-    historialVentas.push(venta);
-    localStorage.setItem("historialVentas", JSON.stringify(historialVentas));
-
-    mostrarAlerta(`Venta registrada (producto no registrado) por $${precio.toFixed(2)} (${pago})`, "warning");
+    if (confirm("Producto no encontrado. ¿Desea registrar la venta igualmente?")) {
+      const venta = { 
+        codigo, 
+        nombre: "Producto no registrado",
+        categoria: "Varios",
+        precio, 
+        pago, 
+        fecha,
+        costo: 0
+      };
+      
+      historialVentas.push(venta);
+      localStorage.setItem("historialVentas", JSON.stringify(historialVentas));
+      
+      mostrarAlerta(
+        Venta registrada (producto no registrado) por $${precio.toFixed(2)} (${pago}),
+        "warning"
+      );
+    }
   }
-
-  // Subir a Supabase
-  const { error } = await client.from("ventas").insert([venta]);
-  if (error) {
-    console.error("Error al guardar en Supabase:", error);
-  }
-
+  
   document.getElementById("codigoVenta").value = "";
   document.getElementById("precioVentaManual").value = "";
 }
+
 // Función para mostrar historial
 function mostrarHistorial() {
   const ano = document.getElementById("filtroAno").value ? parseInt(document.getElementById("filtroAno").value) : null;
@@ -807,7 +763,7 @@ function mostrarHistorial() {
   let totalVentasTarjeta = 0;
   let totalVentasTransferencia = 0;
   
-  let html = `<table>
+  let html = <table>
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -820,7 +776,7 @@ function mostrarHistorial() {
                     <th>Acción</th>
                   </tr>
                 </thead>
-                <tbody>`;
+                <tbody>;
   
   ventasFiltradas.forEach((venta, index) => {
     const fecha = new Date(venta.fecha);
@@ -833,7 +789,7 @@ function mostrarHistorial() {
     else if (venta.pago === "Tarjeta") totalVentasTarjeta += venta.precio;
     else if (venta.pago === "Transferencia") totalVentasTransferencia += venta.precio;
     
-    html += `<tr>
+    html += <tr>
               <td>${fecha.toLocaleString()}</td>
               <td>${venta.codigo}</td>
               <td>${venta.nombre}</td>
@@ -842,13 +798,13 @@ function mostrarHistorial() {
               <td>$${ganancia.toFixed(2)}</td>
               <td>${venta.pago}</td>
               <td><button onclick="eliminarVenta(${historialVentas.indexOf(venta)})" class="danger">Eliminar</button></td>
-            </tr>`;
+            </tr>;
   });
   
-  html += `</tbody></table>`;
+  html += </tbody></table>;
   
   // Resumen de ventas
-  html += `<div class="summary-card">
+  html += <div class="summary-card">
             <h3>Resumen de Ventas</h3>
             <div class="summary-item">
               <span>Total Ventas:</span>
@@ -874,7 +830,7 @@ function mostrarHistorial() {
               <span>Ventas por Transferencia:</span>
               <strong>$${totalVentasTransferencia.toFixed(2)}</strong>
             </div>
-          </div>`;
+          </div>;
   
   contenedor.innerHTML = html;
 }
@@ -887,7 +843,7 @@ function eliminarVenta(index) {
     mostrarHistorial();
     
     mostrarAlerta(
-      `Venta eliminada del historial: ${ventaEliminada.nombre} por $${ventaEliminada.precio.toFixed(2)}`,
+      Venta eliminada del historial: ${ventaEliminada.nombre} por $${ventaEliminada.precio.toFixed(2)},
       "danger"
     );
   }
@@ -917,15 +873,15 @@ function exportarHistorial() {
     const fecha = new Date(venta.fecha);
     const ganancia = venta.precio - (venta.costo || 0);
     
-    csv += `"${fecha.toLocaleString()}","${venta.codigo}","${venta.nombre}","${venta.categoria}",` +
-           `"${venta.precio.toFixed(2)}","${ganancia.toFixed(2)}","${venta.pago}"\n`;
+    csv += "${fecha.toLocaleString()}","${venta.codigo}","${venta.nombre}","${venta.categoria}", +
+           "${venta.precio.toFixed(2)}","${ganancia.toFixed(2)}","${venta.pago}"\n;
   });
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.setAttribute('download', `historial_ventas_${new Date().toISOString().slice(0,10)}.csv`);
+  link.setAttribute('download', historial_ventas_${new Date().toISOString().slice(0,10)}.csv);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -943,7 +899,7 @@ function cargarFiltrosHistorial() {
   selAno.innerHTML = '<option value="">Todos los años</option>';
   const anoActual = new Date().getFullYear();
   for (let y = 2020; y <= anoActual + 5; y++) {
-    selAno.innerHTML += `<option value="${y}">${y}</option>`;
+    selAno.innerHTML += <option value="${y}">${y}</option>;
   }
   selAno.value = anoActual;
 
@@ -951,14 +907,14 @@ function cargarFiltrosHistorial() {
   const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
   selMes.innerHTML = '<option value="">Todos los meses</option>';
   meses.forEach((mes, index) => {
-    selMes.innerHTML += `<option value="${index + 1}">${mes}</option>`;
+    selMes.innerHTML += <option value="${index + 1}">${mes}</option>;
   });
   selMes.value = new Date().getMonth() + 1;
 
   // Días
   selDia.innerHTML = '<option value="">Todos los días</option>';
   for (let d = 1; d <= 31; d++) {
-    selDia.innerHTML += `<option value="${d}">${d}</option>`;
+    selDia.innerHTML += <option value="${d}">${d}</option>;
   }
   selDia.value = new Date().getDate();
 }
@@ -968,7 +924,7 @@ function showTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
   document.getElementById(tabName).classList.add('active');
-  document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+  document.querySelector(.tab[onclick="showTab('${tabName}')"]).classList.add('active');
   
   if (tabName === 'inventario') {
     productos = JSON.parse(localStorage.getItem("productos")) || [];
